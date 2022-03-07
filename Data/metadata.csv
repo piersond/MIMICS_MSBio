@@ -1,0 +1,16 @@
+﻿variable,definition,units
+site,study location: either Harvard Forest or SCBI,na
+plot,"soil collection location within the site: combined with site, this will make a unique soil id",
+treatment,moisture treatment as a percentage of water holding capacity ,percent
+cum_LitterCMin,cumulative litter carbon mineralization over the whole experiment (202 days),mg CO2-C g litter-1
+soilGWC,Gravimetric soil moisture expressed on a dry mass basis (water mass/dry soil mass),
+soilpH,pH in water 1:1 with soil,
+sir,"substrate induced respiration of soil, measured on soil with yeast",ug CO2C hr-1 g-1 dry soil
+percent.N,soil % N,percent
+percent.C,soil % C,percent
+C_N,soil C:N ,ratio
+bulkdensity,mass of soil per unit volume with roots and rock removed for top 0-5 cm,g cm-3
+soilWHC,100% water holding capacity (aka field capacity) expressed as gravimetric moisture on a dry mass basis,
+sir_mlC,"sir, converted",mL CO2 hr-1 g-1 dry soil
+microbialBiomassC_perg,"microbial biomass C, estimated based on SIR (above) based on Anderson and Domsch 1978",mg microbial C g-1 dry soil
+microbialBiomassC,"as above, but total pool in the microcosm initially",mg microbial C 
