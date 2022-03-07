@@ -15,7 +15,7 @@ source("MIMICS_ftns/RXEQ_ftn.R")
 ###########################################
 # MIMICS single point function
 ###########################################
-MIMICS_24 <- function(df){
+MIMICS_INC_HOUR <- function(df, ndays){
   
   ### note var may be used to collect run notes
   note <- ""
@@ -92,7 +92,7 @@ MIMICS_24 <- function(df){
   ############################################################
  
   # Set run length
-  nday   <- 200  # number of days
+  nday   <- ndays # number of days
    
   # Open matrices to store model output
   LITmin  <- rep(NA, dim=4)
@@ -126,35 +126,39 @@ MIMICS_24 <- function(df){
   CO2_1    <- 0
   CO2_2    <- 0
   
+  ## Set global parameters to pass to RXEQ function
+#DEBUG: Double check this works correctly when run outside of the loop
+  .GlobalEnv$VMAX <- VMAX
+  .GlobalEnv$KM <- KM
+  .GlobalEnv$fPHYS <- fPHYS
+  .GlobalEnv$fCHEM <- fCHEM
+  .GlobalEnv$fAVAI <- fAVAI
+  .GlobalEnv$I <- I
+  .GlobalEnv$tau <- tau
+  .GlobalEnv$LITmin <- LITmin
+  .GlobalEnv$SOMmin <- SOMmin
+  .GlobalEnv$MICtrn <- MICtrn
+  .GlobalEnv$desorb <- desorb
+  .GlobalEnv$DEsorb <- DEsorb
+  .GlobalEnv$OXIDAT <- OXIDAT
+  
+  # Create vector of parameter values
+  tpars <- c(I = I, VMAX = VMAX, KM = KM, CUE = CUE, 
+             fPHYS = fPHYS, fCHEM = fCHEM, fAVAI = fAVAI, FI = FI, 
+             tau   = tau, LITmin = LITmin, SOMmin = SOMmin, MICtrn = MICtrn, 
+             desorb= desorb, DEsorb = DEsorb, OXIDAT = OXIDAT, KO = KO)
+  
   ### BEGIN MODEL LOOP ###
   # Loop over 24 hours for specified number of days 
   for (d in 1:nday)  {
     for (h in 1:24)   {
       
-      ## Set global parameters to pass to RXEQ function
-  #DEBUG: Does this work if run outside of the loop?
-      .GlobalEnv$VMAX <- VMAX
-      .GlobalEnv$KM <- KM
-      .GlobalEnv$fPHYS <- fPHYS
-      .GlobalEnv$fCHEM <- fCHEM
-      .GlobalEnv$fAVAI <- fAVAI
-      .GlobalEnv$I <- I
-      .GlobalEnv$tau <- tau
-      .GlobalEnv$LITmin <- LITmin
-      .GlobalEnv$SOMmin <- SOMmin
-      .GlobalEnv$MICtrn <- MICtrn
-      .GlobalEnv$desorb <- desorb
-      .GlobalEnv$DEsorb <- DEsorb
-      .GlobalEnv$OXIDAT <- OXIDAT
-      
       # Get model output from RXEQ ftn
       update <- RXEQ(y = c(LIT_1 = LIT_1, LIT_2 = LIT_2, 
                            MIC_1 = MIC_1, MIC_2 = MIC_2, 
-                           SOM_1 = SOM_1, SOM_2 = SOM_2, SOM_3 = SOM_3),
-                     pars = c(I = I, VMAX = VMAX, KM = KM, CUE = CUE, 
-                              fPHYS = fPHYS, fCHEM = fCHEM, fAVAI = fAVAI, FI = FI, 
-                              tau   = tau, LITmin = LITmin, SOMmin = SOMmin, MICtrn = MICtrn, 
-                              desorb= desorb, DEsorb = DEsorb, OXIDAT = OXIDAT, KO = KO))
+                           SOM_1 = SOM_1, SOM_2 = SOM_2, 
+                           SOM_3 = SOM_3),
+                     pars = tpars)
       
       # Update C pools
       LIT_1  <- LIT_1 + update[[1]][1]
@@ -166,7 +170,7 @@ MIMICS_24 <- function(df){
       SOM_3  <- SOM_3 + update[[1]][7]
       CO2_1  <- CO2_1 + update[[1]][8]
       CO2_2  <- CO2_2 + update[[1]][9]
-      remove(UPpars, UPy, update)
+      #remove(UPpars, UPy, update)
       
       # Store daily output
       if (h == 24) {

@@ -6,7 +6,7 @@ library(dplyr) # used for pipes (%>%)
 library(purrr) # used for map() function
 
 # Load MIMICS model ftn script
-source("MIMICS_ftns/MIMICS_24hr.R")
+source("MIMICS_ftns/MIMICS_INC_hourly.R")
 
 # Load parameters for MIMICS
 source("MIMICS_set_parameters.R")
@@ -25,15 +25,15 @@ df <- data.frame(SITE = 'HARV',
                    N = 1,
                    CN = 49)
 # Run MIMICS and store output as MIMout 
-MIMout <- MIMICS_24(df[1,])
+MIMout <- MIMICS_INC_HOUR(df[1,], ndays=200) #hourly step 
 
-
-### Multi-point run
-df10 <- df[rep(seq_len(nrow(df)), each = 10),] # Create example dataframe with 10 replicate rows
-df10$SITE <-  sprintf("SITE%d",seq(1:10)) # Set unique SITE names
+### Multi-point run (hourly)
+df50 <- df[rep(seq_len(nrow(df)), each = 50),] # Create example dataframe with 10 replicate rows
+df50$SITE <-  sprintf("SITE%d",seq(1:50)) # Set unique SITE names
 
 # Run MIMICS using each row of SITE data and row bind the model output into one dataframe
-MIMout2 <- df10 %>% split(1:nrow(df10)) %>% map(~ MIMICS_24(df=.)) %>% bind_rows() 
+MIMout_50 <- df50 %>% split(1:nrow(df50)) %>% map(~ MIMICS_INC_HOUR(df=., ndays=200)) %>% bind_rows()
+
 
 
 
