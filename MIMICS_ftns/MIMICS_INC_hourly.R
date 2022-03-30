@@ -26,7 +26,8 @@ MIMICS_INC_HOUR <- function(df, ndays){
   fCLAY      <- df$CLAY/100  # Convert clay from percent to fraction
   TSOI       <- df$MAT # Use MAT as proxy for soil temperature
   #lig_N      <- df$lig_N 
-  
+  fW         <- df$fW # Soil moisture scalar
+  soilGWC    <- df$soilGWC/100 # For use as scalar on decomposition rate
   
   ### Set fMET (=partioning coefficient for metabolic vs. structural litter pools)
   
@@ -51,6 +52,7 @@ MIMICS_INC_HOUR <- function(df, ndays){
   #print(EST_LIT)# gC/m2/h (from gC/m2/y) then mgC/cm2/h(from gC/m2/h) 
   
   # ------------ caclulate parameters ---------------
+  
   Vmax     <- exp(TSOI * Vslope + Vint) * aV 
   Km       <- exp(TSOI * Kslope + Kint) * aK
   
@@ -81,11 +83,21 @@ MIMICS_INC_HOUR <- function(df, ndays){
   
   VMAX     <- Vmax * v_MOD 
   KM       <- Km / k_MOD
-  
+
   #MC scalars on VMAX and Km
   VMAX <- VMAX * VMAX_MULT
   KM <- KM * KM_MULT
   
+  ############################################################
+  # SITE CONDITIONS SCALARS
+  ############################################################
+  
+  # Soil moisture scalar
+  VMAX <- VMAX #* (0.5 + (0.5 * fW))  # Revamp with a more complex function
+    
+  # Site moisture condition scalars on VMAX and Km
+  VMAX <- VMAX * (0.7 + (0.3 * soilGWC)) 
+  KM <- KM * (0.7 + (0.3 * soilGWC)) 
   
   ############################################################
   # MIMICS MODEL RUN STARTS HERE
@@ -200,15 +212,15 @@ MIMICS_INC_HOUR <- function(df, ndays){
 # ##############################################
 # #single point run
 # ##############################################
-# df <- data.frame(SITE = 'HARV',
-#                    ANPP = 744,
-#                    MAT = 25,#7.1,
-#                    CLAY = 15,
-#                    LIG = 21,
-#                    N = 1.02,
-#                    CN = 49.01960784)
-# 
-# MIMout <- MIMICS1(df[1,])
+df <- data.frame(SITE = 'HARV',
+                   ANPP = 0,
+                   MAT = 25,
+                   CLAY = 0,
+                   LIG = 21,
+                   N = 1,
+                   CN = 49)
+
+MIMout <- MIMICS_INC_HOUR(df[1,])
 
 
 # ##############################################
@@ -225,35 +237,35 @@ MIMICS_INC_HOUR <- function(df, ndays){
 ###########
 
 # Litter mass
-# plot_LIT <- ggplot(MIMout, aes(y=LITs, x=DAY, color="Structural")) + geom_line(size=1) +
-#   geom_line(aes(y=LITm, x=DAY, color="Metabolic"), size=1) +
-#   theme_bw() +
-#   ylab("Litter mass remaining (%)") +
-#   xlab("Incubation Time (days)") +
-#   labs(color = "Litter Pool")
-# 
-# # SOM & MIC pools
-# plot_SOM_MIC <- ggplot(MIMout, aes(SOMc, x=DAY, color="SOMc")) + geom_line(size=1) +
-#   geom_line(aes(y=SOMa, x=DAY, color="SOMa"), size=1) +
-#   geom_line(aes(y=MICr, x=DAY, color="MIC-r"), size=1) +
-#   geom_line(aes(y=MICK, x=DAY, color="MIC-K"), size=1) +
-#   theme_bw() +
-#   ylab("Microbial and soil C") +
-#   xlab("Incubation Time (days)") +
-#   labs(color = "C Pool") +
-#   ylim(0, 3)
-# 
-# # CO2 fraction
-# plot_CO2 <- ggplot(MIMout, aes(y=rowSums(MIMout[,10:11])/rowSums(MIMout[,3:11]),
-#                    x=DAY, color="CO2-C")) + geom_line(size=1) +
-#   theme_bw() +
-#   ylab("CO2 (fraction of initial") +
-#   xlab("Incubation Time (days)") +
-#   labs(color = "C Pool")
-# 
-# 
-# # Build a panel plot
-# ggarrange(plot_LIT, plot_SOM_MIC, plot_CO2,
-#           nrow=3,
-#           ncol=1)
+plot_LIT <- ggplot(MIMout, aes(y=LITs, x=DAY, color="Structural")) + geom_line(size=1) +
+  geom_line(aes(y=LITm, x=DAY, color="Metabolic"), size=1) +
+  theme_bw() +
+  ylab("Litter mass remaining (%)") +
+  xlab("Incubation Time (days)") +
+  labs(color = "Litter Pool")
+
+# SOM & MIC pools
+plot_SOM_MIC <- ggplot(MIMout, aes(SOMc, x=DAY, color="SOMc")) + geom_line(size=1) +
+  geom_line(aes(y=SOMa, x=DAY, color="SOMa"), size=1) +
+  geom_line(aes(y=MICr, x=DAY, color="MIC-r"), size=1) +
+  geom_line(aes(y=MICK, x=DAY, color="MIC-K"), size=1) +
+  theme_bw() +
+  ylab("Microbial and soil C") +
+  xlab("Incubation Time (days)") +
+  labs(color = "C Pool") +
+  ylim(0, 3)
+
+# CO2 fraction
+plot_CO2 <- ggplot(MIMout, aes(y=rowSums(MIMout[,10:11])/rowSums(MIMout[,3:11]),
+                   x=DAY, color="CO2-C")) + geom_line(size=1) +
+  theme_bw() +
+  ylab("CO2 (fraction of initial") +
+  xlab("Incubation Time (days)") +
+  labs(color = "C Pool")
+
+
+# Build a panel plot
+ggarrange(plot_LIT, plot_SOM_MIC, plot_CO2,
+          nrow=3,
+          ncol=1)
 

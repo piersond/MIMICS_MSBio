@@ -32,6 +32,13 @@ fPHYS_MULT = 1
 VMAX_MULT = 1
 KM_MULT = 1
 
+# Set defualts for MIMrepeat use
+
+Vslope_default <- rep(0.063, 6)
+Vint_default <- rep(5.47, 6)
+Kslope_default <- rep(0.02, 6)
+Kint_default <- rep(3.19, 6)
+
 ########################################
 # Apply parameter multipliers
 ########################################
